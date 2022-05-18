@@ -1,4 +1,4 @@
-module tuto
+module main
 
 go 1.18
 

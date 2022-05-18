@@ -1,0 +1,44 @@
+[
+    {
+        "id": "rec5aF9TjMjBicXCK",
+        
+        "Surf Break": [
+            "Reef Break"
+        ],
+        "Difficulty Level": 4,
+        "Favorite": true,
+        "Name": "Pipeline",
+        "State/Country": "Oahu, Hawaii",
+        "Address": "Pipeline, Oahu, Hawaii",
+        "Magic Seaweed Link": "https://magicseaweed.com/Pipeline-Backdoor-Surf-Report/616/",
+        "Photos": [
+            {
+                "id": "attf6yu03NAtCuv5L",
+                "url": "https://dl.airtable.com/ZuXJZ2NnTF40kCdBfTld_thomas-ashlock-64485-unsplash.jpg",
+                "filename": "thomas-ashlock-64485-unsplash.jpg",
+                "size": 688397,
+                "type": "image/jpeg",
+                "thumbnails": {
+                    "small": {
+                        "url": "<https://dl.airtable.com/yfKxR9ZQqiT7drKxpjdF_small_thomas-ashlock-64485-unsplash.jpg>",
+                        "width": 52,
+                        "height": 36
+                    },
+                    "large": {
+                        "url": "<https://dl.airtable.com/cFfMuU8NQjaEskeC3B2h_large_thomas-ashlock-64485-unsplash.jpg>",
+                        "width": 744,
+                        "height": 512
+                    },
+                    "full": {
+                        "url": "<https://dl.airtable.com/psynuQNmSvOTe3BWa0Fw_full_thomas-ashlock-64485-unsplash.jpg>",
+                        "width": 2233,
+                        "height": 1536
+                    }
+                }
+            }
+        ],
+        "Peak Surf Season Begins": "2018-07-22",
+        "Peak Surf Season Ends": "2018-08-31",
+        "createdTime": "2018-05-31T00:16:16.000Z"
+    }
+]
