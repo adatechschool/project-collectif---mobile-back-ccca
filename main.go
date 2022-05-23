@@ -1,63 +1,69 @@
 package main
 
-import(
+import (
+	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"io/ioutil"
-    "encoding/json"
-	"github.com/gorilla/mux"
-	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"strconv"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 func test() {
-    // Open up our database connection.
-    db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/surfspot")
+	// Open up our database connection.
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:8080)/surfspot")
 
-    // if there is an error opening the connection, handle it
-    if err != nil {
-        panic(err.Error())
-    }
-
-    // defer the close till after the main function has finished
-    // executing
-    defer db.Close()
-
-	// perform a db.Query insert
-	insert, err := db.Query("INSERT INTO spots VALUES ( 1, 'Pipeline', 'Reef Break', 4, false, 'Oahu, Hawaii', 'Pipeline, Oahu, Hawaii', 'https://magicseaweed.com/Pipeline-Backdoor-Surf-Report/616/', 'https://dl.airtable.com/ZuXJZ2NnTF40kCdBfTld_thomas-ashlock-64485-unsplash.jpg', '2018-07-22', '2018-08-31', '2018-05-31T00:16:16.000Z' )")
-
-	// if there is an error inserting, handle it
+	// if there is an error opening the connection, handle it
 	if err != nil {
 		panic(err.Error())
 	}
-	// be careful deferring Queries if you are using transactions
-	defer insert.Close()
 
+	// defer the close till after the main function has finished
+	// executing
+	defer db.Close()
+
+	// Execute the query
+	results, err := db.Query("SELECT id, name FROM spots")
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+	}
+
+	for results.Next() {
+		var spot spot
+		// for each row, scan the result into our tag composite object
+		err = results.Scan(&spot.ID, &spot.Name)
+		if err != nil {
+			panic(err.Error()) // proper error handling instead of panic in your app
+		}
+		// and then print out the tag's Name attribute
+		fmt.Println(spot.Name)
+	}
 }
 
-type spot struct{
-	ID int `json:"ID"`
-	Name string `json:"Name"`
-	SurfBreak string `json:"Surf Break"`
-	DifficultyLevel int `json:"Difficulty Level"`
-	Favorite bool `json:"Favorite"`
-	StateCountry string `json:"State/Country"`
-	Address string `json:"Address"`
-	Link string `json:"Link"`
-	Photos string `json:"Photos"`
-	SeasonStart string `json:"Season Start"`
-	SeasonEnd string `json:"Season End"`
-	CreatedTime string `json:"createdTime"`
+type spot struct {
+	ID              int    `json:"ID"`
+	Name            string `json:"Name"`
+	SurfBreak       string `json:"Surf Break"`
+	DifficultyLevel int    `json:"Difficulty Level"`
+	Favorite        bool   `json:"Favorite"`
+	StateCountry    string `json:"State/Country"`
+	Address         string `json:"Address"`
+	Link            string `json:"Link"`
+	Photos          string `json:"Photos"`
+	SeasonStart     string `json:"Season Start"`
+	SeasonEnd       string `json:"Season End"`
+	CreatedTime     string `json:"createdTime"`
 }
-
 
 type allSpots []spot
 
 type partialSpot struct {
-	ID int `json:"ID"`
-	Name string `json:"Name"`
+	ID        int    `json:"ID"`
+	Name      string `json:"Name"`
 	SurfBreak string `json:"Surf Break"`
 }
 
@@ -65,27 +71,26 @@ type allPartialSpots []partialSpot
 
 var spots = allSpots{
 	{
-        ID: 1,
-        Name: "Pipeline",
-        SurfBreak: "Reef Break",
-        DifficultyLevel: 4,
-        Favorite: false,
-        StateCountry: "Oahu, Hawaii",
-        Address: "Pipeline, Oahu, Hawaii",
-        Link: "https://magicseaweed.com/Pipeline-Backdoor-Surf-Report/616/",
-        Photos: "https://dl.airtable.com/ZuXJZ2NnTF40kCdBfTld_thomas-ashlock-64485-unsplash.jpg",
-        SeasonStart: "2018-07-22",
-        SeasonEnd: "2018-08-31",
-        CreatedTime: "2018-05-31T00:16:16.000Z",
-    },
-
+		ID:              1,
+		Name:            "Pipeline",
+		SurfBreak:       "Reef Break",
+		DifficultyLevel: 4,
+		Favorite:        false,
+		StateCountry:    "Oahu, Hawaii",
+		Address:         "Pipeline, Oahu, Hawaii",
+		Link:            "https://magicseaweed.com/Pipeline-Backdoor-Surf-Report/616/",
+		Photos:          "https://dl.airtable.com/ZuXJZ2NnTF40kCdBfTld_thomas-ashlock-64485-unsplash.jpg",
+		SeasonStart:     "2018-07-22",
+		SeasonEnd:       "2018-08-31",
+		CreatedTime:     "2018-05-31T00:16:16.000Z",
+	},
 }
 
-func homeLink(w http.ResponseWriter, r *http.Request){
+func homeLink(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome Home !")
 }
 
-func createSpot(w http.ResponseWriter, r *http.Request){
+func createSpot(w http.ResponseWriter, r *http.Request) {
 	var newSpot spot
 	reqBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -142,8 +147,8 @@ func updateSpot(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func main(){
-	router:= mux.NewRouter().StrictSlash(true)
+func main() {
+	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", getAllSpots).Methods("GET")
 	router.HandleFunc("/spot", createSpot).Methods("POST")
 	router.HandleFunc("/spots/{id}", deleteSpot).Methods("DELETE")
