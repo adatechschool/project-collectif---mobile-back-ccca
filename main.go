@@ -13,9 +13,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func test() {
+/*func test() {
 	// Open up our database connection.
-	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:8080)/surfspot")
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/surfspot")
 
 	// if there is an error opening the connection, handle it
 	if err != nil {
@@ -27,7 +27,7 @@ func test() {
 	defer db.Close()
 
 	// Execute the query
-	results, err := db.Query("SELECT id, name FROM spots")
+	results, err := db.Query("SELECT id, name, surfBreak, difficultyLevel, favorite, stateCountry, address, link, photos, seasonStart, seasonEnd, createdTime FROM spots")
 	if err != nil {
 		panic(err.Error()) // proper error handling instead of panic in your app
 	}
@@ -35,14 +35,17 @@ func test() {
 	for results.Next() {
 		var spot spot
 		// for each row, scan the result into our tag composite object
-		err = results.Scan(&spot.ID, &spot.Name)
+		err = results.Scan(&spot.ID, &spot.Name, &spot.SurfBreak, &spot.DifficultyLevel, &spot.Favorite, &spot.StateCountry, &spot.Address, &spot.Link, &spot.Photos, &spot.SeasonStart, &spot.SeasonEnd, &spot.CreatedTime)
 		if err != nil {
 			panic(err.Error()) // proper error handling instead of panic in your app
 		}
 		// and then print out the tag's Name attribute
-		fmt.Println(spot.Name)
+		spots = append(spots, spot)
+		json.NewEncoder(w).Encode(spots)
+
+		fmt.Println(spot)
 	}
-}
+}*/
 
 type spot struct {
 	ID              int    `json:"ID"`
@@ -69,22 +72,7 @@ type partialSpot struct {
 
 type allPartialSpots []partialSpot
 
-var spots = allSpots{
-	{
-		ID:              1,
-		Name:            "Pipeline",
-		SurfBreak:       "Reef Break",
-		DifficultyLevel: 4,
-		Favorite:        false,
-		StateCountry:    "Oahu, Hawaii",
-		Address:         "Pipeline, Oahu, Hawaii",
-		Link:            "https://magicseaweed.com/Pipeline-Backdoor-Surf-Report/616/",
-		Photos:          "https://dl.airtable.com/ZuXJZ2NnTF40kCdBfTld_thomas-ashlock-64485-unsplash.jpg",
-		SeasonStart:     "2018-07-22",
-		SeasonEnd:       "2018-08-31",
-		CreatedTime:     "2018-05-31T00:16:16.000Z",
-	},
-}
+var spots allSpots
 
 func homeLink(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome Home !")
@@ -125,6 +113,35 @@ func getOneSpot(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllSpots(w http.ResponseWriter, r *http.Request) {
+	spots = nil
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/surfspot")
+
+	// if there is an error opening the connection, handle it
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// defer the close till after the main function has finished
+	// executing
+	defer db.Close()
+
+	// Execute the query
+	results, err := db.Query("SELECT * FROM spots")
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+	}
+	fmt.Println(results)
+	for results.Next() {
+		var spot spot
+		// for each row, scan the result into our tag composite object
+		err = results.Scan(&spot.ID, &spot.Name, &spot.SurfBreak, &spot.DifficultyLevel, &spot.Favorite, &spot.StateCountry, &spot.Address, &spot.Link, &spot.Photos, &spot.SeasonStart, &spot.SeasonEnd, &spot.CreatedTime)
+		if err != nil {
+			panic(err.Error()) // proper error handling instead of panic in your app
+		}
+		// and then print out the tag's Name attribute
+		spots = append(spots, spot)
+
+	}
 	json.NewEncoder(w).Encode(spots)
 }
 
@@ -161,6 +178,5 @@ func main() {
 		Addr:    "0.0.0.0:8000",
 		// Good practice: enforce timeouts for servers you create
 	}
-	test()
 	log.Fatal(srv.ListenAndServe())
 }
