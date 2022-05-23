@@ -19,12 +19,21 @@ type spot struct{
 	Address string `json:"Address"`
 	Link string `json:"Link"`
 	Photos string `json:"Photos"`
-	StartSeason string `json:"Start Season"`
-	EndSeason string `json:"End Season"`
+	SeasonStart string `json:"Season Start"`
+	SeasonEnd string `json:"Season End"`
 	CreatedTime string `json:"createdTime"`
 }
 
+
 type allSpots []spot
+
+type partialSpot struct {
+	ID string `json:"ID"`
+	Name string `json:"Name"`
+	SurfBreak string `json:"Surf Break"`
+}
+
+type allPartialSpots []partialSpot
 
 var spots = allSpots{
 	{
@@ -32,13 +41,13 @@ var spots = allSpots{
         Name: "Pipeline",
         SurfBreak: "Reef Break",
         DifficultyLevel: 4,
-        Favorite: true,
+        Favorite: false,
         StateCountry: "Oahu, Hawaii",
         Address: "Pipeline, Oahu, Hawaii",
         Link: "https://magicseaweed.com/Pipeline-Backdoor-Surf-Report/616/",
         Photos: "https://dl.airtable.com/ZuXJZ2NnTF40kCdBfTld_thomas-ashlock-64485-unsplash.jpg",
-        StartSeason: "2018-07-22",
-        EndSeason: "2018-08-31",
+        SeasonStart: "2018-07-22",
+        SeasonEnd: "2018-08-31",
         CreatedTime: "2018-05-31T00:16:16.000Z",
     },
 
@@ -77,7 +86,7 @@ func getOneSpot(w http.ResponseWriter, r *http.Request) {
 
 	for _, singleSpot := range spots {
 		if singleSpot.ID == spotID {
-			json.NewEncoder(w).Encode(singleSpot)
+			json.NewEncoder(w).Encode(singleSpot.ID)
 		}
 	}
 }
@@ -107,11 +116,18 @@ func updateSpot(w http.ResponseWriter, r *http.Request) {
 
 func main(){
 	router:= mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", homeLink)
+	router.HandleFunc("/", getAllSpots).Methods("GET")
 	router.HandleFunc("/spot", createSpot).Methods("POST")
 	router.HandleFunc("/spots/{id}", deleteSpot).Methods("DELETE")
 	router.HandleFunc("/spots/{id}", getOneSpot).Methods("GET")
 	router.HandleFunc("/spots", getAllSpots).Methods("GET")
 	router.HandleFunc("/spots/{id}", updateSpot).Methods("PATCH")
-	log.Fatal(http.ListenAndServe(":8080", router))
+
+	srv := &http.Server{
+		Handler: router,
+		Addr:    "0.0.0.0:8000",
+		// Good practice: enforce timeouts for servers you create
+	}
+
+	log.Fatal(srv.ListenAndServe())
 }
