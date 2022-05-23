@@ -7,10 +7,38 @@ import(
 	"io/ioutil"
     "encoding/json"
 	"github.com/gorilla/mux"
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
+	"strconv"
 )
 
+func test() {
+    // Open up our database connection.
+    db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/surfspot")
+
+    // if there is an error opening the connection, handle it
+    if err != nil {
+        panic(err.Error())
+    }
+
+    // defer the close till after the main function has finished
+    // executing
+    defer db.Close()
+
+	// perform a db.Query insert
+	insert, err := db.Query("INSERT INTO spots VALUES ( 1, 'Pipeline', 'Reef Break', 4, false, 'Oahu, Hawaii', 'Pipeline, Oahu, Hawaii', 'https://magicseaweed.com/Pipeline-Backdoor-Surf-Report/616/', 'https://dl.airtable.com/ZuXJZ2NnTF40kCdBfTld_thomas-ashlock-64485-unsplash.jpg', '2018-07-22', '2018-08-31', '2018-05-31T00:16:16.000Z' )")
+
+	// if there is an error inserting, handle it
+	if err != nil {
+		panic(err.Error())
+	}
+	// be careful deferring Queries if you are using transactions
+	defer insert.Close()
+
+}
+
 type spot struct{
-	ID string `json:"ID"`
+	ID int `json:"ID"`
 	Name string `json:"Name"`
 	SurfBreak string `json:"Surf Break"`
 	DifficultyLevel int `json:"Difficulty Level"`
@@ -28,7 +56,7 @@ type spot struct{
 type allSpots []spot
 
 type partialSpot struct {
-	ID string `json:"ID"`
+	ID int `json:"ID"`
 	Name string `json:"Name"`
 	SurfBreak string `json:"Surf Break"`
 }
@@ -37,7 +65,7 @@ type allPartialSpots []partialSpot
 
 var spots = allSpots{
 	{
-        ID: "rec5aF9TjMjBicXCK",
+        ID: 1,
         Name: "Pipeline",
         SurfBreak: "Reef Break",
         DifficultyLevel: 4,
@@ -71,7 +99,7 @@ func createSpot(w http.ResponseWriter, r *http.Request){
 }
 
 func deleteSpot(w http.ResponseWriter, r *http.Request) {
-	spotID := mux.Vars(r)["id"]
+	spotID, _ := strconv.Atoi(mux.Vars(r)["id"])
 
 	for i, singleSpot := range spots {
 		if singleSpot.ID == spotID {
@@ -82,7 +110,7 @@ func deleteSpot(w http.ResponseWriter, r *http.Request) {
 }
 
 func getOneSpot(w http.ResponseWriter, r *http.Request) {
-	spotID := mux.Vars(r)["id"]
+	spotID, _ := strconv.Atoi(mux.Vars(r)["id"])
 
 	for _, singleSpot := range spots {
 		if singleSpot.ID == spotID {
@@ -96,7 +124,7 @@ func getAllSpots(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateSpot(w http.ResponseWriter, r *http.Request) {
-	spotID := mux.Vars(r)["id"]
+	spotID, _ := strconv.Atoi(mux.Vars(r)["id"])
 	var updatedSpot spot
 
 	reqBody, err := ioutil.ReadAll(r.Body)
@@ -128,6 +156,6 @@ func main(){
 		Addr:    "0.0.0.0:8000",
 		// Good practice: enforce timeouts for servers you create
 	}
-
+	test()
 	log.Fatal(srv.ListenAndServe())
 }
