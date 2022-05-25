@@ -85,9 +85,35 @@ func createSpot(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "ça marche pas")
 	}
 	json.Unmarshal(reqBody, &newSpot)
-	spots = append(spots, newSpot)
-	w.WriteHeader(http.StatusCreated)
 
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/surfspot")
+
+	// if there is an error opening the connection, handle it
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// defer the close till after the main function has finished
+	// executing
+	defer db.Close()
+
+	// perform a db.Query insert
+	sqlInsert := `
+	INSERT INTO spots (name, surfBreak, difficultyLevel, favorite, stateCountry, address, link, photos, seasonStart, seasonEnd, createdTime)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	//id := 0
+	stmt, err := db.Prepare(sqlInsert) //.Scan(&id)
+	if err != nil {
+		panic(err)
+	}
+	res, err := stmt.Exec(newSpot.Name, newSpot.SurfBreak, newSpot.DifficultyLevel, newSpot.Favorite, newSpot.StateCountry, newSpot.Address, newSpot.Link, newSpot.Photos, newSpot.SeasonStart, newSpot.SeasonEnd, newSpot.CreatedTime)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("New record ID is:", res)
+
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newSpot)
 }
 
@@ -139,6 +165,7 @@ func getAllSpots(w http.ResponseWriter, r *http.Request) {
 			panic(err.Error()) // proper error handling instead of panic in your app
 		}
 		// and then print out the tag's Name attribute
+
 		spots = append(spots, spot)
 
 	}
